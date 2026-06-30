@@ -124,7 +124,7 @@ zemi check example/
 
 # Introduce intentional Raw leak in example — expect Z004
 zemi check example/broken/raw_leak.zemi
-# warning[Z004]: Raw type `Bytes` used outside port pipeline
+# error[Z004]: Raw type `Bytes` used outside port pipeline
 ```
 
 ### Exit criteria

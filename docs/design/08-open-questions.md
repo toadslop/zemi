@@ -196,7 +196,8 @@ Record settled decisions here as design progresses.
 | 2025-06-30 | Components are closed; libraries are open | Components export ports; libraries export reusable code |
 | 2025-06-30 | Ports exist at component depth only | Inside a component, ordinary code; compiler stops thinking architecturally |
 | 2025-06-30 | POC: port = compiler-recognized declaration | Provisional — see [10-poc-design-decisions.md](./10-poc-design-decisions.md) |
-| 2025-06-30 | POC: Raw = builtins; Interpreted = user structs | Provisional — sufficient for leak lint in v0 |
+| 2025-06-30 | POC: Raw = builtins; Interpreted = user structs | Provisional — sufficient for leak checking in v0 |
+| 2025-06-30 | POC: Raw leakage in interior = compile error | Not a lint — core boundary invariant per governing principles |
 | 2025-06-30 | POC: `\|>` pipe operator only | One transformation model for ports and interior code |
 | 2025-06-30 | POC: compile-time wiring via external files | Plug replacement without changing port definitions |
 | 2025-06-30 | POC scenario: HTTP API + inner component | Reference program in `example/` |

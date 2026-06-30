@@ -62,13 +62,15 @@ The compiler generates internal IR nodes (`PortNode`); it does **not** require p
 2. Ingress port pipeline **output** must be Interpreted.
 3. Component interior functions may use Interpreted types freely.
 4. Raw may appear in component interior **only** inside port pipeline stages and as fields of Interpreted structs (representation-holding fields).
-5. Diagnostic `Z004` fires on other Raw uses in interior code.
+5. Diagnostic `Z004` (**error**) fires on other Raw uses in interior code.
 
-**Rationale:** Implements "representation is not meaning" without a full kind system. Enough for leak lint.
+**Rationale:** Implements "representation is not meaning" without a full kind system. Raw leakage is a **hard error**, not a lint — the same stance as [Governing Principles](./02-governing-principles.md) §1 and §7: the transition from representation to meaning must be explicit and cannot happen accidentally. If the compiler only warns, programmers can suppress or ignore the boundary; an error makes the architectural contract non-optional.
+
+**Why not a lint?** Lints imply optional hygiene. Raw in component interior violates a core language invariant (boundaries are explicit), so it belongs alongside `Z001` (cross-component import) and `Z003` (uninterpreted ingress output) as a compile error. Representation-holding fields inside interpreted structs (e.g. `FileBuffer { bytes: Vec<u8> }`) remain allowed — the error targets Raw used as the *semantic type* of interior logic, not Raw encapsulated within an interpreted wrapper.
 
 **Deferred:** Degrees of interpretation, explicit `raw` keyword, escape hatches, newtype auto-classification.
 
-**Validate:** `decode_utf8(bytes: Bytes) -> String` is allowed in a pipeline stage; using `Bytes` in `fn handle(user: User)` body triggers `Z004`.
+**Validate:** `decode_utf8(bytes: Bytes) -> String` is allowed in a pipeline stage; `fn handle(bytes: Bytes)` in component interior fails with error `Z004`; `struct FileBuffer { bytes: Vec<u8> }` remains valid.
 
 ---
 

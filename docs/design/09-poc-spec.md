@@ -36,7 +36,7 @@ The POC is complete when all of the following hold:
 2. **IR** — The compiler produces an IR that preserves components, ports, wiring, and pipeline stages (see [IR requirements](#ir-requirements)).
 3. **Graph** — `zemi components graph` renders the component/port graph for the reference program.
 4. **Inventory** — `zemi ports list` lists every port with direction, component, and pipeline stages.
-5. **Leak lint** — The compiler warns when a Raw type appears in component interior logic outside allowed sites.
+5. **Leak check** — The compiler errors when a Raw type appears in component interior logic outside allowed sites.
 6. **Import lint** — The compiler errors when one component imports another component's implementation.
 7. **Wiring** — Selecting `--test` vs. default wiring chooses a different adapter for the same port.
 8. **Documentation** — A reader can follow [10-poc-design-decisions.md](./10-poc-design-decisions.md) and this document to understand every construct in the reference program.
@@ -253,7 +253,7 @@ TypeKind ::= Raw | Interpreted
 | `Z001` | error | Component A imports component B's interior module |
 | `Z002` | error | Port declared on a library |
 | `Z003` | error | Ingress port pipeline output is Raw |
-| `Z004` | warn | Raw type used in component interior outside port pipeline |
+| `Z004` | error | Raw type used in component interior outside port pipeline |
 | `Z005` | error | Required port has no wiring edge |
 | `Z006` | warn | Component declared but never connected in wiring graph |
 

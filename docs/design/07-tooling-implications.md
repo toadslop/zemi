@@ -96,7 +96,7 @@ Suggested early tooling targets (when implementation begins):
 1. `zemi components list` — component inventory
 2. `zemi components graph` — architecture diagram (text or DOT)
 3. `zemi ports list` — port inventory per component
-4. Compiler warning: Raw value escaping port boundary
+4. Compiler error: Raw value escaping port boundary
 5. Compiler warning: external access not through a port
 6. Compiler warning: component importing another component's implementation
 
