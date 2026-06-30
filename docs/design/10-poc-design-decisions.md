@@ -3,7 +3,8 @@
 This document resolves the **high-priority open questions** from [Open Questions](./08-open-questions.md) with answers scoped to the POC. These are **provisional** — sufficient to implement and validate the thesis, not necessarily final language choices.
 
 **Status:** POC-scoped (provisional)  
-**Companion:** [POC Specification](./09-poc-spec.md)
+**Companion:** [POC Specification](./09-poc-spec.md)  
+**Last design review:** 2026-06-30 — wiring, subcomponents, and newtype rules captured from team conversation
 
 When a POC decision conflicts with exploratory text in documents 01–08, **this document wins for POC work**. Update the decision log in [08-open-questions.md](./08-open-questions.md) as items graduate from provisional to settled.
 
@@ -54,7 +55,7 @@ The compiler generates internal IR nodes (`PortNode`); it does **not** require p
 | Classification | Types (POC) |
 |----------------|-------------|
 | **Raw** | `Bytes`, `String`, `u8`–`u64`, `i8`–`i64`, `f32`, `f64`, `bool`, `Vec<T>` where `T` is Raw |
-| **Interpreted** | Any user-defined `struct` or `type` alias wrapping meaning (e.g. `UserId`, `User`, `HttpRequest`, `HttpResponse`) |
+| **Interpreted** | Any user-defined `struct` or newtype wrapping meaning (e.g. `UserId`, `User`, `HttpRequest`, `HttpResponse`) |
 
 **Rules (POC):**
 
@@ -63,14 +64,24 @@ The compiler generates internal IR nodes (`PortNode`); it does **not** require p
 3. Component interior functions may use Interpreted types freely.
 4. Raw may appear in component interior **only** inside port pipeline stages and as fields of Interpreted structs (representation-holding fields).
 5. Diagnostic `Z004` (**error**) fires on other Raw uses in interior code.
+6. **Component interior types are not exportable.** Other components cannot import them; communication is through ports only. Cross-component Raw leakage via exported interior types is therefore not a concern — encapsulation handles it.
+
+**Libraries (directional, not locked):**
+
+Libraries are shared implementation visible to many components. The interpretation status of library-exported types is **unspecified** and intended to be validated through experimentation. Current leaning:
+
+- Libraries should eventually be able to **declare a type as Raw**, forcing importers to wrap it in their own newtype before treating it as domain meaning.
+- Library types not marked Raw carry the **library author's interpretation** when imported.
+
+POC does **not** enforce library Raw marking or import-time wrapping. Focus remains on ingress boundary and interior leak checking inside components.
 
 **Rationale:** Implements "representation is not meaning" without a full kind system. Raw leakage is a **hard error**, not a lint — the same stance as [Governing Principles](./02-governing-principles.md) §1 and §7: the transition from representation to meaning must be explicit and cannot happen accidentally. If the compiler only warns, programmers can suppress or ignore the boundary; an error makes the architectural contract non-optional.
 
 **Why not a lint?** Lints imply optional hygiene. Raw in component interior violates a core language invariant (boundaries are explicit), so it belongs alongside `Z001` (cross-component import) and `Z003` (uninterpreted ingress output) as a compile error. Representation-holding fields inside interpreted structs (e.g. `FileBuffer { bytes: Vec<u8> }`) remain allowed — the error targets Raw used as the *semantic type* of interior logic, not Raw encapsulated within an interpreted wrapper.
 
-**Deferred:** Degrees of interpretation, explicit `raw` keyword, escape hatches, newtype auto-classification.
+**Deferred:** Degrees of interpretation, explicit `raw` keyword, escape hatches, `type Alias = u64` classification, library Raw declaration syntax, import-time wrapping enforcement.
 
-**Validate:** `decode_utf8(bytes: Bytes) -> String` is allowed in a pipeline stage; `fn handle(bytes: Bytes)` in component interior fails with error `Z004`; `struct FileBuffer { bytes: Vec<u8> }` remains valid.
+**Validate:** `decode_utf8(bytes: Bytes) -> String` is allowed in a pipeline stage; `fn handle(bytes: Bytes)` in component interior fails with error `Z004`; `struct FileBuffer { bytes: Vec<u8> }` remains valid; `struct UserId(u64)` is Interpreted.
 
 ---
 
@@ -85,9 +96,35 @@ The compiler generates internal IR nodes (`PortNode`); it does **not** require p
 | Library | `library Name { ... }` | Exports via `export fn` / `export type`; no ports; no subcomponents |
 | Component | `component Name { ... }` | May contain `port`, `component` (subcomponent), `fn`, `type`, internal `wiring` |
 | Application | Root `component` in main file | Same as component; designated entry in wiring file |
-| Nesting | `component Child` inside parent | Child appears as node in parent's subgraph |
+| Nesting | `component Child` inside parent | See [Subcomponents](#3a-subcomponents) below |
 | Visibility | `export` keyword on library items only | Components export ports implicitly; interior is private |
 | Cross-import | **Forbidden** | Component A cannot `use` component B's interior; shared code goes in a library |
+
+### 3a. Subcomponents
+
+**Physical analogy:** A component is a machine. Sub-assemblies are installed inside it. The connection model is always the same — subcomponents have ports; the parent wires to them — but **where the subcomponent is defined** determines encapsulation.
+
+| Pattern | Analogy | Definition | Visibility |
+|---------|---------|------------|------------|
+| **Installed part** | Off-the-shelf motor bolted into a chassis | Defined **externally**, then **referenced** inside the parent (`component UserService`) | Reusable — the same definition can be installed in many parents |
+| **Proprietary part** | Custom PCB built only for this product | Defined **inline** inside the parent (`component Cache { port ...; fn ... }`) | Private to the enclosing component; not referenceable from outside |
+
+**Multi-installation:** An externally defined component exists so it can be used in many places — like one engine model in many cars. Each installation is a **separate instance** in the architecture graph:
+
+```
+App.UserService.GetUser          // installation in App
+AdminApp.UserService.GetUser     // same definition, different installation
+```
+
+**Rules (POC):**
+
+1. Inline nested components are **private to the enclosing component** — proprietary parts stay inside the enclosure.
+2. Externally defined components may be **installed in multiple parents** — each install is a distinct graph node.
+3. **No wiring across encapsulation boundaries** without going through the parent's ports — you cannot reach inside another component's chassis.
+4. Subcomponents always appear in the architecture graph **under their parent**; visibility controls referenceability, not existence.
+5. Internal `wiring { }` connects parent ports to child ports within the same enclosing component.
+
+**Validate:** `example/app.zemi` demonstrates the installed-part pattern (`component UserService` reference + external definition). Proprietary inline subcomponents are supported in syntax/IR but optional in the reference program.
 
 **File layout (POC):**
 
@@ -165,19 +202,21 @@ port Name {
 
 ## 6. Wiring model
 
-**Question:** Compile-time DI? Link-time? Runtime? Test adapter selection?
+**Question:** Compile-time DI? Link-time? Runtime? Test adapter selection? What granularity do wiring edges attach to?
 
-**POC decision:** **Compile-time wiring** via separate wiring declarations.
+**POC decision:** **Compile-time wiring** via wiring declarations. Wiring connects **ports to ports** — like plugging a cable into a socket on a device, not into an internal wire inside the device.
+
+**Physical analogy:** A port is a plug socket (conceptually one hole). Wiring is whatever connects to that socket — a cable, splitter, or hub. Topology complexity (1:1, 1:many, many:many) lives in **wiring**, not in the port definition. The full topology model is **not specified yet**; keep it simple for POC.
 
 **Internal wiring** (inside a component body):
 
 ```
 wiring {
-    HttpIngress.route_to_user -> UserService.GetUser
+    HttpIngress -> UserService.GetUser
 }
 ```
 
-Connects one port's pipeline terminus to another port's entry (inter-component edge).
+Port-to-port edges within the enclosing component. No sub-point labels (e.g. no `HttpIngress.route_to_user`).
 
 **External wiring** (root component, separate file):
 
@@ -190,13 +229,24 @@ wiring App {
 
 **Profile selection:** `zemi check --wiring wiring/test.zemi` loads the test profile. Default profile uses `wiring/prod.zemi` if present.
 
-Adapters are **named references** in the POC — no adapter implementation language yet. The compiler validates that every external `source` port has a wiring edge.
+Adapters are **named references** in the POC — no adapter implementation language yet. The compiler validates that every external `source` port has **at least one** wiring edge (`Z005`).
 
-**Rationale:** Plug replacement from [Ports](./05-ports.md): same port definition, different adapter in wiring file. Structural, not heuristic.
+**POC wiring limits:**
 
-**Deferred:** Runtime configuration, multiple adapters per port, adapter implementation syntax, link-time adapter selection.
+| In scope | Deferred |
+|----------|----------|
+| Port-to-port edges | Hub/splitter semantics (multiple adapters on one port) |
+| Parse multiple edges to the same port | What happens when 2+ adapters attach to one port |
+| External wiring files for plug replacement | Port-local or inferred wiring (long-term preference to reduce explicit wiring ceremony) |
+| Internal wiring 1:1 in reference example | Runtime configuration, adapter implementation syntax |
 
-**Validate:** `--wiring wiring/test.zemi` resolves `FakeTcp` instead of `TcpListener` for `HttpIngress`; port definition unchanged.
+**Long-term direction (not POC):** Explicit wiring files prove the plug-replacement model but are not necessarily permanent. Wiring may eventually collapse into port-local connection declarations or inference.
+
+**Rationale:** Plug replacement from [Ports](./05-ports.md): same port definition, different adapter in wiring file. Structural, not heuristic. Port-to-port edges keep the plug analogy clean.
+
+**Deferred:** Runtime configuration, hub/splitter topology rules, adapter implementation syntax, link-time adapter selection, port-local wiring syntax.
+
+**Validate:** `--wiring wiring/test.zemi` resolves `FakeTcp` instead of `TcpListener` for `HttpIngress`; port definition unchanged; internal wiring uses `HttpIngress -> UserService.GetUser`.
 
 ---
 
@@ -278,10 +328,13 @@ port HttpIngress {
 | Topic | POC answer | Final language TBD |
 |-------|------------|-------------------|
 | Port formal model | Compiler-recognized declaration | Maybe |
-| Raw vs. interpreted | Builtin = Raw; user struct = Interpreted | Maybe |
+| Raw vs. interpreted | Builtin = Raw; user struct/newtype = Interpreted | Maybe |
+| Component interior types | Not exportable; cross-component type leak N/A | Likely |
+| Library type interpretation | Unspecified; libraries may declare Raw types (experiment) | Yes |
+| Subcomponents | Installed (external def) + proprietary (inline def); multi-install | Likely |
 | Module kinds | `component`, `library` keywords | Likely |
 | Pipeline | `\|>` only | Likely |
-| Wiring | External files + compile-time selection | Maybe |
+| Wiring | Port-to-port; external files for POC; topology deferred | Maybe |
 | Effects | Ignored | No |
 | Egress | Parsed only | No |
 | Codegen | None (IR JSON) | No |

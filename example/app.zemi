@@ -10,14 +10,15 @@ component App {
         Bytes
             |> decode_utf8
             |> Http.parse_request
-            |> Json.parse
             |> route_request
     }
 
+    // Installed subcomponent: UserService is defined externally below and
+    // referenced here (like an off-the-shelf part installed in the chassis).
     component UserService
 
     wiring {
-        HttpIngress.route_to_user -> UserService.GetUser
+        HttpIngress -> UserService.GetUser
     }
 
     fn decode_utf8(bytes: Bytes) -> String {
