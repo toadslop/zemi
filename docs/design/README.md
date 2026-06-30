@@ -2,9 +2,11 @@
 
 This directory captures the evolving design of **Zemi**, a programming language whose central thesis is making **software architecture first-class**.
 
-These documents are intentionally design-first. Implementation should follow once the core concepts are stable enough to guide compiler and tooling work.
+These documents are intentionally design-first. The **POC track** (documents 09–11) narrows scope enough to begin implementation while full-language questions remain open in document 08.
 
 ## Reading order
+
+### Core design
 
 | Document | Summary |
 |----------|---------|
@@ -17,6 +19,16 @@ These documents are intentionally design-first. Implementation should follow onc
 | [Tooling Implications](./07-tooling-implications.md) | What becomes possible once the compiler knows the architecture |
 | [Open Questions](./08-open-questions.md) | Unresolved design decisions and next steps |
 
+### POC track (implementation-ready)
+
+| Document | Summary |
+|----------|---------|
+| [POC Specification](./09-poc-spec.md) | Scope, success criteria, reference program, IR requirements |
+| [POC Design Decisions](./10-poc-design-decisions.md) | Provisional answers to high-priority open questions |
+| [Implementation Plan](./11-implementation-plan.md) | Phased build plan, repo layout, testing strategy |
+
+See also: [POC track index](../poc/README.md) and the reference program in [`example/`](../../example/).
+
 ## Guiding sentence
 
 > **Representation is not meaning.**
@@ -25,7 +37,7 @@ Everything else in these documents flows from that principle.
 
 ## Status
 
-**Phase:** Early design exploration  
+**Phase:** POC design complete — ready to begin implementation (Phase 0)  
 **Last updated:** 2025-06-30
 
-Documents marked with open questions should be treated as proposals, not settled specification.
+Documents 01–08 are exploratory; documents 09–11 are POC-scoped and govern implementation work until graduated into the main decision log.

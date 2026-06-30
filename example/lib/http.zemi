@@ -1,0 +1,3 @@
+library Http {
+    export fn parse_request(raw: String) -> HttpRequest
+}
