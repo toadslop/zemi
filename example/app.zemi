@@ -1,0 +1,55 @@
+// Reference program for Zemi POC
+// See docs/design/09-poc-spec.md
+
+component App {
+
+    port HttpIngress {
+        ingress
+        source tcp
+
+        Bytes
+            |> decode_utf8
+            |> Http.parse_request
+            |> Json.parse
+            |> route_request
+    }
+
+    component UserService
+
+    wiring {
+        HttpIngress.route_to_user -> UserService.GetUser
+    }
+
+    fn decode_utf8(bytes: Bytes) -> String {
+        // POC stub
+    }
+
+    fn route_request(req: HttpRequest) -> HttpResponse {
+        // POC stub
+    }
+}
+
+component UserService {
+
+    port GetUser {
+        ingress
+        source sibling
+
+        HttpRequest
+            |> extract_user_id
+            |> load_user
+            |> to_response
+    }
+
+    fn extract_user_id(req: HttpRequest) -> UserId {
+        // POC stub
+    }
+
+    fn load_user(id: UserId) -> User {
+        // POC stub
+    }
+
+    fn to_response(user: User) -> HttpResponse {
+        // POC stub
+    }
+}

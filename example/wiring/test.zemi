@@ -1,0 +1,4 @@
+wiring App {
+    App.HttpIngress -> FakeTcp
+    App.UserService.GetUser -> InMemoryUserService
+}

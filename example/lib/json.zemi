@@ -1,0 +1,3 @@
+library Json {
+    export fn parse(text: String) -> JsonValue
+}

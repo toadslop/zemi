@@ -156,6 +156,16 @@ Before writing compiler code:
 6. **Walk through examples** — hex editor, HTTP API, compiler stage pipeline
 7. **Prototype tooling queries** — component graph and port inventory from IR
 
+### POC track (completed for v0)
+
+Steps 1–5 and 7 are addressed for the POC in:
+
+- [POC Specification](./09-poc-spec.md)
+- [POC Design Decisions](./10-poc-design-decisions.md)
+- [Implementation Plan](./11-implementation-plan.md)
+
+The HTTP API reference program in [`example/`](../../example/) implements step 6 for the POC scenario. Additional scenarios remain for post-POC design exercises.
+
 ## Example-driven design exercises
 
 Draft implementations of these scenarios (on paper) to stress-test the model:
@@ -185,3 +195,8 @@ Record settled decisions here as design progresses.
 | 2025-06-30 | Applications are root components | Generalize ports from application-only to any component |
 | 2025-06-30 | Components are closed; libraries are open | Components export ports; libraries export reusable code |
 | 2025-06-30 | Ports exist at component depth only | Inside a component, ordinary code; compiler stops thinking architecturally |
+| 2025-06-30 | POC: port = compiler-recognized declaration | Provisional — see [10-poc-design-decisions.md](./10-poc-design-decisions.md) |
+| 2025-06-30 | POC: Raw = builtins; Interpreted = user structs | Provisional — sufficient for leak lint in v0 |
+| 2025-06-30 | POC: `\|>` pipe operator only | One transformation model for ports and interior code |
+| 2025-06-30 | POC: compile-time wiring via external files | Plug replacement without changing port definitions |
+| 2025-06-30 | POC scenario: HTTP API + inner component | Reference program in `example/` |
