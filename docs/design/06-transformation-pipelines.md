@@ -4,7 +4,7 @@ Ports reuse the language's ordinary transformation model. This document explains
 
 ## The insight
 
-Entry points into an application are transformation pipelines that progressively convert external representations into meaningful domain concepts before data reaches the interior.
+Entry points into a component are transformation pipelines that progressively convert external representations into meaningful concepts before data reaches the component interior.
 
 This is computationally familiar:
 
@@ -14,7 +14,7 @@ A → B → C → D → E
 
 Function composition, `map` chains, and pipe operators all express this. **The operations are not new.**
 
-What is new is the compiler knowing that a *specific* pipeline is an application boundary.
+What is new is the compiler knowing that a *specific* pipeline is a **component boundary** (a port).
 
 ## Iterator analogy (with limits)
 
@@ -35,7 +35,7 @@ Conceptually similar to:
 bytes.map(parse_http).map(parse_json).map(parse_user)
 ```
 
-But ports are **not** iterators. See [Ports — Ports vs. iterators](./04-ports.md#ports-vs-iterators).
+But ports are **not** iterators. See [Ports — Ports vs. iterators](./05-ports.md#ports-vs-iterators).
 
 Better analogy: **Unix pipes**
 
@@ -55,7 +55,7 @@ Similarly, a port declaration does not invent new transforms. It marks that a pi
 |-----------|---------------------|---------------|
 | `async { }` | Ordinary control flow | Participates in async execution |
 | `unsafe { }` | Ordinary scope | Relaxed safety rules |
-| `port { }` | Ordinary pipeline | Crosses application boundary |
+| `port { }` | Ordinary pipeline | Crosses a component boundary |
 
 ## One transformation model
 
@@ -170,4 +170,4 @@ Over:
 - Error handling in port pipelines (where failures live architecturally)
 - Whether egress pipelines are symmetric or use different combinators
 
-See [Open Questions](./07-open-questions.md).
+See [Open Questions](./08-open-questions.md).

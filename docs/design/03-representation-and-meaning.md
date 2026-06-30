@@ -24,17 +24,17 @@ The compiler does not know what these represent until explicit interpretation oc
 
 ## Where interpretation happens
 
-Interpretation is the transition from representation to meaning. In Zemi, this transition is expected to happen **at ports** — the architectural boundary — before values enter application interior.
+Interpretation is the transition from representation to meaning. In Zemi, this transition is expected to happen **at ports** — on component boundaries — before values enter a component's interior.
 
 ```
-Outside World
+Outside World / Other Component
     ↓  (Raw representations)
 Port pipeline (interpretation stages)
-    ↓  (Application concepts)
-Application interior
+    ↓  (Meaningful concepts)
+Component interior
 ```
 
-The application interior manipulates meaningful concepts. Raw representations should not leak inward without the compiler flagging it.
+The component interior manipulates meaningful concepts. Raw representations should not leak inward without the compiler flagging it.
 
 ## Examples across domains
 
@@ -71,11 +71,11 @@ At every stage, representation is wrapped in a type that carries semantic meanin
 
 > Raw types may appear at port boundaries and within representation-holding fields. Application logic operates on interpreted types.
 
-Exact enforcement rules (type system details, escape hatches, etc.) are **open questions** — see [Open Questions](./07-open-questions.md).
+Exact enforcement rules (type system details, escape hatches, etc.) are **open questions** — see [Open Questions](./08-open-questions.md).
 
 ## Relationship to ports
 
-Ports are where the outside world's representations enter the application. A port pipeline progressively interprets Raw into application concepts:
+Ports are where outside representations enter a component (or where a component communicates outward). A port pipeline progressively interprets Raw into meaningful concepts:
 
 ```
 TCP bytes

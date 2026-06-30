@@ -103,3 +103,34 @@ When evaluating a proposed feature, ask:
 5. Does it make implicit architectural decisions visible to the compiler?
 
 If a proposal fails most of these checks, it likely belongs in a library rather than the language core.
+
+## 10. Two kinds of module, not an ontology
+
+Zemi distinguishes exactly two top-level kinds of module:
+
+- **Component** — architectural unit that connects through ports
+- **Library** — reusable implementation building block
+
+Resist classifying everything. Rust succeeded with a few powerful distinctions rather than a complete ontology of software. Two kinds is enough if they carry real semantic weight.
+
+**Implication:** Do not add `service`, `adapter`, `repository`, or other architectural pattern names as language keywords. Patterns emerge from how components are composed and wired, not from module kind taxonomies.
+
+## 11. Generalize, don't special-case
+
+When a concept applies only to applications but could apply more broadly, generalize it:
+
+- Ports were on applications → ports are on components
+- Applications are special → applications are root components
+- Library vs. executable vs. component crates → component and library module kinds
+
+> Eliminate special cases by finding the more general abstraction.
+
+**Implication:** Before adding a new concept, ask whether an existing one can be generalized instead.
+
+## 12. Components are closed; libraries are open
+
+Components expose **ports**, not implementation. Libraries export **reusable code** for any component to call.
+
+If two components share implementation, extract a library — do not import one component's internals from another. Cross-component communication goes through ports.
+
+**Implication:** The language nudges toward clean architecture not by forbidding messy code, but by making the right refactoring the path of least resistance.

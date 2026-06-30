@@ -54,13 +54,29 @@ port HttpIngress {
 - Relationship to async streams and generators?
 - Standard library naming and placement of transform functions
 
-Must integrate seamlessly with port bodies per [Transformation Pipelines](./05-transformation-pipelines.md).
+Must integrate seamlessly with port bodies per [Transformation Pipelines](./06-transformation-pipelines.md).
+
+## Components and libraries
+
+**Priority: high**
+
+See [Components and Libraries](./04-components-and-libraries.md) for the settled direction. Open details:
+
+- Exact syntax: `component` / `library` keywords (or alternatives)?
+- Mapping to crates: can one crate contain multiple components? Multiple libraries?
+- Subcomponent declaration: nested `component` blocks inside a parent component?
+- Visibility rules: what can be private inside a component vs. what must be in a library to share?
+- Can a component depend on another component without a port (never, by design)?
+- Internal utilities inside a component: always private, or exportable within the same crate?
+
+**Settled direction:** two top-level module kinds; components declare ports; libraries export reusable code; applications are root components.
 
 ## Wiring model
 
-**Priority: high** (for executables vs. libraries)
+**Priority: high**
 
-- How does an executable connect an adapter to a port?
+- How does wiring connect adapters to ports on the root component?
+- How do inner components wire to each other through ports?
 - Compile-time DI? Link-time selection? Runtime configuration?
 - How are test adapters declared and selected?
 - Can one port have multiple adapters in one build (e.g. logging + primary)?
@@ -96,9 +112,12 @@ Must integrate seamlessly with port bodies per [Transformation Pipelines](./05-t
 
 **Priority: medium**
 
-- Library exposes ports; executable wires — exact mechanism?
-- Can ports span modules? Crates?
-- Visibility rules for port interiors vs. application interiors
+- How do `component` and `library` declarations map to crates and files?
+- Can ports span modules within a component?
+- Visibility rules for component interiors vs. library exports
+- Relationship between root component and binary entry point
+
+**Settled direction:** library/executable/component crate trichotomy generalizes into component + library module kinds, with the application as root component. See [Components and Libraries](./04-components-and-libraries.md).
 
 ## Capabilities
 
@@ -129,12 +148,13 @@ Must integrate seamlessly with port bodies per [Transformation Pipelines](./05-t
 
 Before writing compiler code:
 
-1. **Formalize the port** — declaration model, IR shape, what gets generated
-2. **Define Raw vs. interpreted** — type system rules and leakage checks
-3. **Specify pipeline syntax** — one transformation model for entire language
-4. **Sketch wiring** — library/executable split with minimal example
-5. **Walk through examples** — hex editor, HTTP API, compiler stage pipeline
-6. **Prototype tooling queries** — what the compiler must record in IR
+1. **Formalize components and libraries** — declaration model, visibility rules, crate mapping
+2. **Formalize the port** — declaration model on components, IR shape, what gets generated
+3. **Define Raw vs. interpreted** — type system rules and leakage checks
+4. **Specify pipeline syntax** — one transformation model for entire language
+5. **Sketch wiring** — root component and inter-component port connection with minimal example
+6. **Walk through examples** — hex editor, HTTP API, compiler stage pipeline
+7. **Prototype tooling queries** — component graph and port inventory from IR
 
 ## Example-driven design exercises
 
@@ -142,11 +162,12 @@ Draft implementations of these scenarios (on paper) to stress-test the model:
 
 | Scenario | Stresses |
 |----------|----------|
-| HTTP API server | Ingress pipeline, auth, egress responses |
-| Hex editor | Low-level bytes with semantic wrappers |
+| HTTP API server | Root component, inner components, ingress pipeline, auth, egress |
+| Hex editor | Low-level bytes with semantic wrappers, single root component |
 | CLI file processor | Filesystem port, batch vs. stream |
-| Compiler frontend | Multi-stage interpretation chain |
+| Compiler frontend | Multi-stage interpretation chain, nested components |
 | Test suite | Plug replacement for all ports |
+| Shared geometry | Library used by multiple components; no cross-component imports |
 
 ---
 
@@ -160,3 +181,7 @@ Record settled decisions here as design progresses.
 | 2025-06-30 | Guiding principle: representation is not meaning | Philosophical foundation |
 | 2025-06-30 | Ports extend pipelines, not replace them | Avoid parallel computation models |
 | 2025-06-30 | Ports ≠ effects | One connector, many operations |
+| 2025-06-30 | Two module kinds: component and library | Architectural units vs. reusable implementation; few powerful distinctions |
+| 2025-06-30 | Applications are root components | Generalize ports from application-only to any component |
+| 2025-06-30 | Components are closed; libraries are open | Components export ports; libraries export reusable code |
+| 2025-06-30 | Ports exist at component depth only | Inside a component, ordinary code; compiler stops thinking architecturally |
