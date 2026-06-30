@@ -36,6 +36,7 @@ Concrete syntax lives in [`../../example/`](../../example/). These files are **d
 | Phase | Status |
 |-------|--------|
 | Design (docs 09–11) | **Complete** |
+| Design review (wiring, subcomponents, newtypes) | **Complete** (2026-06-30) |
 | Phase 0: Bootstrap | Not started |
 | Phase 1: Parse | Not started |
 | Phase 2: IR | Not started |

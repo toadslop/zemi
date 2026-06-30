@@ -280,8 +280,10 @@ Before Phase 0 begins, confirm:
 
 - [x] [09-poc-spec.md](./09-poc-spec.md) accepted as POC scope
 - [x] [10-poc-design-decisions.md](./10-poc-design-decisions.md) accepted as provisional spec
-- [ ] Reference program syntax reviewed (no ambiguous constructs)
-- [ ] Team agrees ingress-only is sufficient for v0
-- [ ] IR JSON is acceptable POC output (no codegen)
+- [x] Reference program syntax reviewed (no ambiguous constructs) — 2026-06-30; wiring and pipeline corrected in `example/`
+- [x] Team agrees ingress-only is sufficient for v0 — accepted as POC default; no further design review required
+- [x] IR JSON is acceptable POC output (no codegen) — accepted as POC default; no further design review required
+
+Implementation scaffolding defaults (interior language stubs, domain type placement in examples) are intentionally left to implementers — they do not affect thesis validation.
 
 Once the last three items are checked, start Phase 0.

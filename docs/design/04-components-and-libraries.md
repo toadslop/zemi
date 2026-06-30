@@ -177,6 +177,19 @@ Component  Component
 
 There is no conceptual difference between an application and an inner component. The application is the outermost one.
 
+### Subcomponents: installed parts and proprietary parts
+
+Use a physical machine analogy. A component is a chassis; sub-assemblies are installed inside it. Two patterns share the same connection model (ports + internal wiring) but differ in **encapsulation**:
+
+| Pattern | Analogy | Definition | Who can use it |
+|---------|---------|------------|----------------|
+| **Installed part** | Off-the-shelf motor bolted into the chassis | Defined externally, referenced inside the parent | Any parent may install the same definition — like one engine model in many cars |
+| **Proprietary part** | Custom PCB built only for this product | Defined inline inside the parent | Private to the enclosing component; not referenceable from outside |
+
+An externally defined component exists precisely so it can be reused. Each installation is a separate node in the architecture graph (`App.UserService` and `AdminApp.UserService` are distinct installations of the same definition).
+
+Wiring always connects **ports to ports** within or across components — never to internal pipeline stages. See [POC Design Decisions §3a](./10-poc-design-decisions.md#3a-subcomponents) and [§6 — Wiring](./10-poc-design-decisions.md#6-wiring-model).
+
 ### Eliminating special cases
 
 This generalization removes several awkward special cases:

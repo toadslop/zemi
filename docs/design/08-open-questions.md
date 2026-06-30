@@ -29,6 +29,8 @@ What is a port, formally?
 - Are there degrees of interpretation, or a binary Raw/Domain split?
 - What are the escape hatches, if any?
 
+**POC direction (2026-06-30):** Language primitives are Raw; user `struct`/newtypes are Interpreted. Component interior types are not exportable — cross-component leakage is handled by encapsulation, not by treating interior types as Raw to outsiders. Library-exported type interpretation is **unspecified**; libraries may eventually declare Raw types. See [10-poc-design-decisions.md §2](./10-poc-design-decisions.md#2-raw-vs-interpreted-types).
+
 ## Port syntax
 
 **Priority: medium** (depends on pipeline syntax)
@@ -71,6 +73,8 @@ See [Components and Libraries](./04-components-and-libraries.md) for the settled
 
 **Settled direction:** two top-level module kinds; components declare ports; libraries export reusable code; applications are root components.
 
+**POC direction (2026-06-30):** Two subcomponent patterns — **installed** (external definition, reusable, multi-installation) and **proprietary** (inline definition, private to parent). See [10-poc-design-decisions.md §3a](./10-poc-design-decisions.md#3a-subcomponents).
+
 ## Wiring model
 
 **Priority: high**
@@ -80,6 +84,8 @@ See [Components and Libraries](./04-components-and-libraries.md) for the settled
 - Compile-time DI? Link-time selection? Runtime configuration?
 - How are test adapters declared and selected?
 - Can one port have multiple adapters in one build (e.g. logging + primary)?
+
+**POC direction (2026-06-30):** Wiring connects **ports to ports**. External wiring files for plug replacement; internal wiring within component bodies. Hub/splitter topology and port-local wiring deferred. See [10-poc-design-decisions.md §6](./10-poc-design-decisions.md#6-wiring-model).
 
 ## Effects system
 
@@ -201,3 +207,11 @@ Record settled decisions here as design progresses.
 | 2025-06-30 | POC: `\|>` pipe operator only | One transformation model for ports and interior code |
 | 2025-06-30 | POC: compile-time wiring via external files | Plug replacement without changing port definitions |
 | 2025-06-30 | POC scenario: HTTP API + inner component | Reference program in `example/` |
+| 2026-06-30 | Wiring connects ports to ports, not pipeline sub-points | Port is the plug socket; wiring attaches to the plug, not internal stages |
+| 2026-06-30 | Wiring topology (1:many, hubs) deferred | Physical analogy allows complexity in wiring; POC keeps port-to-port simple |
+| 2026-06-30 | Explicit wiring files are POC mechanism, not permanent | Long-term preference for less wiring ceremony; files prove plug replacement |
+| 2026-06-30 | Two subcomponent patterns: installed + proprietary | Installed = external def, reusable across parents; proprietary = inline, private |
+| 2026-06-30 | Multi-installation: same component def, many graph nodes | Like one engine model in many cars; `App.UserService` vs `AdminApp.UserService` |
+| 2026-06-30 | Primitives Raw; user struct/newtype Interpreted | Core "representation is not meaning" rule for POC |
+| 2026-06-30 | Component interior types not exportable | Cross-component type leak handled by encapsulation + ports, not Raw classification |
+| 2026-06-30 | Library Raw type marking unspecified | Validate through experimentation; libraries may declare Raw types later |

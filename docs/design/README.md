@@ -38,6 +38,6 @@ Everything else in these documents flows from that principle.
 ## Status
 
 **Phase:** POC design complete — ready to begin implementation (Phase 0)  
-**Last updated:** 2025-06-30
+**Last updated:** 2026-06-30
 
 Documents 01–08 are exploratory; documents 09–11 are POC-scoped and govern implementation work until graduated into the main decision log.

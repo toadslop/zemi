@@ -115,14 +115,13 @@ component App {
         Bytes
             |> decode_utf8
             |> Http.parse_request
-            |> Json.parse
             |> route_request
     }
 
     component UserService
 
     wiring {
-        HttpIngress.route_to_user -> UserService.GetUser
+        HttpIngress -> UserService.GetUser
     }
 
     fn decode_utf8(bytes: Bytes) -> String { ... }
@@ -130,7 +129,9 @@ component App {
 }
 ```
 
-`App` is the **root component**. Its `HttpIngress` port connects to the outside world via `tcp`. An inner `UserService` subcomponent connects through an inter-component wiring edge.
+`App` is the **root component**. Its `HttpIngress` port connects to the outside world via `tcp`. An inner `UserService` subcomponent is an **installed part** — defined externally and referenced inside `App` — connected through a port-to-port internal wiring edge.
+
+See [POC Design Decisions §3a — Subcomponents](./10-poc-design-decisions.md#3a-subcomponents) for the installed vs. proprietary subcomponent model.
 
 ### External wiring (deployment)
 
