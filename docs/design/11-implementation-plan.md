@@ -239,7 +239,7 @@ Avoid testing Rust stdlib behavior. Focus on architecture-specific behavior.
 | Risk | Mitigation |
 |------|------------|
 | Syntax churn invalidates parser | Lock syntax to reference program in 09; change via explicit doc update |
-| Raw/interpreted rules too coarse | Sufficient for POC; refine after leak lint proves useful |
+| Raw/interpreted rules too coarse | Sufficient for POC; refine after leak checking proves useful |
 | Wiring model too simple for real apps | POC proves structural wiring; runtime config deferred |
 | Scope creep into codegen | Explicit non-goal; IR JSON is the output |
 | chumsky learning curve | Fall back to hand-written parser in Phase 1 if blocked > 2 days |

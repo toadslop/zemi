@@ -236,7 +236,7 @@ WiringEdge {
 }
 ```
 
-### Type classification (for leak lint)
+### Type classification (for leak checking)
 
 ```
 TypeKind ::= Raw | Interpreted
